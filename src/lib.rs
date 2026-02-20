@@ -107,3 +107,51 @@ impl DisciplrVault {
         None
     }
 }
+
+/// # Tests
+///
+/// Test module for `DisciplrVault`. Every function under test is called through
+/// the Soroban test environment so that `require_auth` and `panic!` are handled
+/// the same way they would be on-chain.
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use soroban_sdk::{
+        testutils::{Address as _, Ledger},
+        Address, BytesN, Env,
+    };
+
+    // -----------------------------------------------------------------------
+    // Helpers
+    // -----------------------------------------------------------------------
+
+    /// Fixture addresses used across tests.
+    struct Actors {
+        creator: Address,
+        success_dest: Address,
+        failure_dest: Address,
+    }
+
+    /// Build a fresh Soroban test environment, register the contract, and return
+    /// the typed client together with pre-generated mock actor addresses.
+    fn setup() -> (Env, DisciplrVaultClient<'static>, Actors) {
+        let env = Env::default();
+        env.mock_all_auths();
+
+        let contract_id = env.register(DisciplrVault, ());
+        let client = DisciplrVaultClient::new(&env, &contract_id);
+
+        let actors = Actors {
+            creator: Address::generate(&env),
+            success_dest: Address::generate(&env),
+            failure_dest: Address::generate(&env),
+        };
+
+        (env, client, actors)
+    }
+
+    /// Return a deterministic 32-byte milestone hash for testing.
+    fn milestone_hash(env: &Env) -> BytesN<32> {
+        BytesN::from_array(env, &[0xabu8; 32])
+    }
+}
