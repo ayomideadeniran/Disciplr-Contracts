@@ -44,6 +44,13 @@ impl DisciplrVault {
         failure_destination: Address,
     ) -> u32 {
         creator.require_auth();
+
+        // Validate that start_timestamp is strictly before end_timestamp.
+        // A vault with start >= end has no valid time window and must be rejected.
+        if start_timestamp >= end_timestamp {
+            panic!("create_vault: start_timestamp must be strictly less than end_timestamp");
+        }
+
         // TODO: pull USDC from creator to this contract
         // For now, just store vault metadata (storage key pattern would be used in full impl)
         let vault = ProductivityVault {
